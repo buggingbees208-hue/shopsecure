@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Signup | ShopSecure</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                        url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1350') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        nav {
+            background: rgba(44, 62, 80, 0.9);
+            padding: 15px 50px;
+        }
+
+        .logo {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .signup-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.96);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .card h2 {
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #219150;
+        }
+
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .login-link {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .login-link a {
+            color: #2980b9;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        #status-msg {
+            display: none;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">🛒 ShopSecure</a>
+</nav>
+
+<div class="signup-container">
+    <div class="card">
+        <div style="font-size: 40px;">📝</div>
+        <h2>Create Account</h2>
+
+        <input type="text" id="signup_name" placeholder="Full Name">
+        <input type="email" id="signup_email" placeholder="Email Address">
+        <input type="password" id="signup_password" placeholder="Create Password">
+
+        <button id="signupBtn" onclick="signupProcess()">Sign Up</button>
+
+        <p id="status-msg"></p>
+
+        <p class="login-link">
+            Already have an account? <a href="login.html">Login</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    // ✅ Auto detect API for Local or Render
+    const API = window.location.hostname === "127.0.0.1" 
+        ? "http://127.0.0.1:8000" 
+        : "https://your-render-app.onrender.com";
+
+    async function signupProcess() {
+
+        const name = document.getElementById("signup_name").value.trim();
+        const email = document.getElementById("signup_email").value.trim();
+        const password = document.getElementById("signup_password").value.trim();
+        const statusMsg = document.getElementById("status-msg");
+        const btn = document.getElementById("signupBtn");
+
+        if (!name || !email || !password) {
+            alert("Please fill all the fields!");
+            return;
+        }
+
+        // ✅ Basic Email Validation
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email)) {
+            alert("Please enter a valid email address.");
+            return;
+        }
+
+        // ✅ Password Validation
+        if (password.length < 6) {
+            alert("Password must be at least 6 characters.");
+            return;
+        }
+
+        if (password.length > 50) {
+            alert("Password too long! Keep under 50 characters.");
+            return;
+        }
+
+        statusMsg.style.display = "block";
+        statusMsg.style.color = "#2980b9";
+        statusMsg.innerText = "Creating account...";
+        btn.disabled = true;
+
+        try {
+
+            const response = await fetch(`${API}/signup`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    password: password
+                })
+            });
+
+            const result = await response.json();
+
+            btn.disabled = false;
+            statusMsg.style.display = "none";
+
+            if (response.ok) {
+                alert("Account Created Successfully! 🎉");
+                window.location.href = "login.html";
+            } else {
+                alert("Signup Failed: " + (result.detail || "Email already exists"));
+            }
+
+        } catch (err) {
+            btn.disabled = false;
+            statusMsg.style.display = "none";
+            alert("Server not reachable. Make sure FastAPI is running.");
+        }
+    }
+</script>
+
+</body>
+</html>

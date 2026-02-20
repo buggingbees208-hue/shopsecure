@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Rate Your Purchase | ShopSecure</title>
+
+<style>
+body {
+    background:#f4f7f6;
+    font-family:'Poppins',sans-serif;
+    margin:0;
+    padding:20px;
+}
+
+nav {
+    background:#2c3e50;
+    padding:15px;
+    color:white;
+    font-weight:bold;
+    border-radius:8px 8px 0 0;
+}
+
+.container {
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    margin:50px auto;
+    max-width:450px;
+    text-align:center;
+}
+
+.success-icon {
+    font-size:50px;
+    color:#27ae60;
+    margin-bottom:10px;
+}
+
+.input-box {
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border:1px solid #ddd;
+    border-radius:8px;
+    box-sizing:border-box;
+}
+
+textarea {
+    resize:none;
+    height:100px;
+}
+
+.submit-btn {
+    background:#27ae60;
+    color:white;
+    border:none;
+    padding:15px;
+    width:100%;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+    font-size:16px;
+}
+
+.submit-btn:hover {
+    background:#219150;
+}
+
+.error-msg {
+    color:red;
+    font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<nav>🛒 ShopSecure</nav>
+
+<div class="container">
+
+<div class="success-icon">⭐</div>
+<h2>How was your experience?</h2>
+
+<p>Email:
+<span id="display_email" style="font-weight:bold; color:#2980b9;"></span>
+</p>
+
+<p>Your Rating:</p>
+
+<select id="rating" class="input-box">
+<option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+<option value="4">⭐⭐⭐⭐ (Good)</option>
+<option value="3">⭐⭐⭐ (Average)</option>
+<option value="2">⭐⭐ (Poor)</option>
+<option value="1">⭐ (Very Bad)</option>
+</select>
+
+<textarea id="comment" class="input-box"
+placeholder="Write your review here... (optional)"></textarea>
+
+<div id="error" class="error-msg"></div>
+
+<button class="submit-btn" onclick="submitFeedback()">
+Submit Review
+</button>
+
+<br><br>
+
+<a href="index.html" style="color:#007185; text-decoration:none; font-size:14px;">
+Skip and Go to Home
+</a>
+
+</div>
+
+<script>
+
+/* ✅ Render Friendly API */
+const API = window.location.origin;
+
+/* Get email from URL or localStorage */
+const urlParams = new URLSearchParams(window.location.search);
+let userEmail = urlParams.get("email") || localStorage.getItem("user_email");
+
+if (userEmail) {
+    document.getElementById("display_email").innerText = userEmail;
+    localStorage.setItem("user_email", userEmail);
+} else {
+    document.getElementById("error").innerText =
+        "User session not found. Please login again.";
+}
+
+async function submitFeedback() {
+
+    const rating = document.getElementById("rating").value;
+    const comment = document.getElementById("comment").value.trim();
+    const errorDiv = document.getElementById("error");
+
+    errorDiv.innerText = "";
+
+    if (!userEmail) {
+        alert("Session expired. Please login again.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    const feedbackData = {
+        email: userEmail,
+        rating: parseInt(rating),
+        comment: comment
+    };
+
+    try {
+
+        const response = await fetch(`${API}/submit-feedback`, {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify(feedbackData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.status === "success") {
+            alert("🎉 Thank you for your feedback!");
+            window.location.href = "index.html";
+        } else {
+            errorDiv.innerText =
+                result.detail ||
+                "Could not save feedback. Make sure the order is delivered.";
+        }
+
+    } catch (error) {
+        console.error("Network Error:", error);
+        errorDiv.innerText =
+            "Network error: Cannot connect to server.";
+    }
+}
+
+</script>
+
+</body>
+</html>

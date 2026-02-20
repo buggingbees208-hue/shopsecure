@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Verification | ShopSecure</title>
+
+<style>
+body {
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+    url('https://images.unsplash.com/photo-1563013544-824ae1b704d3?q=80&w=1350')
+    no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+.card {
+    background: rgba(255,255,255,0.98);
+    padding: 40px 30px;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+h2 { color: #2c3e50; margin-bottom: 10px; }
+p { color: #7f8c8d; font-size: 14px; margin-bottom: 25px; }
+
+input {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 20px;
+    text-align: center;
+    letter-spacing: 4px;
+}
+
+input:focus {
+    border-color: #2980b9;
+    box-shadow: 0 0 8px rgba(41,128,185,0.3);
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #219150;
+}
+
+#loader {
+    display: none;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #2980b9;
+}
+.footer-text {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #95a5a6;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<div class="card">
+
+<div style="font-size:40px;margin-bottom:10px;">📦</div>
+
+<h2>Verify Your Order</h2>
+<p>Enter the 6-digit OTP sent to your registered email.</p>
+
+<input type="text" id="otp_input" placeholder="Enter OTP" maxlength="6">
+
+<button onclick="verifyOTP()">Verify & Confirm</button>
+
+<div id="loader">🔄 Verifying OTP...</div>
+
+<p class="footer-text">Secure After-Delivery Framework Active</p>
+
+</div>
+</div>
+
+<script>
+
+/* ✅ Auto detect Local / Render */
+const API =
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "localhost"
+        ? "http://127.0.0.1:8000"
+        : "https://your-app-name.onrender.com";  // change before deploy
+
+
+/* ✅ Page load security check */
+window.onload = function () {
+    const email = localStorage.getItem("user_email");
+    if (!email) {
+        alert("Session expired. Please login again.");
+        window.location.href = "login.html";
+    }
+};
+
+
+async function verifyOTP() {
+
+    const otp = document.getElementById("otp_input").value.trim();
+    const loader = document.getElementById("loader");
+    const email = localStorage.getItem("user_email");
+
+    /* 🔒 Basic validation */
+    if (!otp || otp.length !== 6 || !/^\d+$/.test(otp)) {
+        alert("Please enter a valid 6-digit OTP.");
+        return;
+    }
+
+    loader.style.display = "block";
+
+    try {
+
+        const res = await fetch(`${API}/verify-otp`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: email,
+                otp: otp
+            })
+        });
+
+        const data = await res.json();
+        loader.style.display = "none";
+
+        if (res.ok && data.status === "verified") {
+
+            alert("✅ OTP Verified! Delivery confirmed.");
+
+            // Optional: clear OTP input
+            document.getElementById("otp_input").value = "";
+
+            window.location.href = "index.html";
+
+        } else {
+            alert("❌ " + (data.detail || "Invalid OTP! Try again."));
+        }
+
+    } catch (error) {
+        loader.style.display = "none";
+        alert("Server not responding. Please try again.");
+    }
+}
+
+</script>
+
+</body>
+</html>
